@@ -6,6 +6,7 @@ use std::{
 mod requests;
 mod responses;
 mod server;
+mod structs;
 
 fn main() {
     let tcp_server = server::create_server();
@@ -25,7 +26,7 @@ fn handle_request(req_stream: &mut TcpStream) {
     let parsed_stream = String::from_utf8_lossy(&req_buffer);
 
     let http_lines: Vec<&str> = parsed_stream.split("\n").collect();
-    let result = requests::get_http_head(&http_lines);
+    let result = requests::get_http_request_line(&http_lines);
 
     println!("R: {:?}", result);
 }

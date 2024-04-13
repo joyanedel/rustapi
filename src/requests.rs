@@ -1,7 +1,11 @@
 use regex::Regex;
 
+use crate::structs::{HttpMethod, HttpRequestLine};
+use std::str::FromStr;
+
 const HTTP_VERSION: &'static str = "1.1";
-const HTTP_HEAD: &'static str = "(GET|POST|PUT|PATCH|DELETE|OPTIONS|HEAD) ([\\S])+ HTTP.*";
+const HTTP_HEAD: &'static str =
+    r"(?<method>(GET|POST|PUT|PATCH|DELETE|OPTIONS|HEAD)) (?<path>[\S]+) HTTP.*";
 
 pub fn format_request(method: String, path: String) -> Result<String, ()> {
     let method = verify_method(&method)?;
@@ -21,14 +25,17 @@ fn verify_method(method: &str) -> Result<&str, ()> {
     }
 }
 
-pub fn get_http_head<'a>(lines: &Vec<&'a str>) -> Option<&'a str> {
+pub fn get_http_request_line(lines: &Vec<&str>) -> Option<HttpRequestLine> {
     let http_head_regex = Regex::new(HTTP_HEAD).unwrap();
     for &line in lines.iter() {
-        if !http_head_regex.is_match(line.trim()) {
+        let Some(captures) = http_head_regex.captures(line.trim()) else {
             continue;
         };
 
-        return Some(&line);
+        return Some(HttpRequestLine {
+            method: HttpMethod::from_str(&captures["method"]).unwrap(),
+            path: captures["path"].to_string(),
+        });
     }
 
     None
