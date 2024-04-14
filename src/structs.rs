@@ -1,4 +1,11 @@
-use std::str::FromStr;
+use std::{collections::HashMap, str::FromStr};
+
+#[derive(Debug)]
+pub struct HttpRequest {
+    pub method: HttpMethod,
+    pub path: String,
+    pub headers: HashMap<String, String>,
+}
 
 #[derive(Debug)]
 pub struct HttpRequestLine {
