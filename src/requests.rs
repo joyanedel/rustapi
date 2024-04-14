@@ -6,7 +6,7 @@ use std::{collections::HashMap, str::FromStr};
 const HTTP_HEAD: &'static str =
     r"(?<method>(GET|POST|PUT|PATCH|DELETE|OPTIONS|HEAD)) (?<path>[\S]+) HTTP.*";
 
-pub fn parse_http_request(lines: &Vec<&str>) -> Result<HttpRequest, ()> {
+pub fn parse_http_request(lines: &Vec<String>) -> Result<HttpRequest, ()> {
     let request_line = get_http_request_line(&lines).ok_or(())?;
     let request_headers = get_http_request_headers(&lines);
 
@@ -17,7 +17,7 @@ pub fn parse_http_request(lines: &Vec<&str>) -> Result<HttpRequest, ()> {
     })
 }
 
-fn get_http_request_line(lines: &Vec<&str>) -> Option<HttpRequestLine> {
+fn get_http_request_line(lines: &Vec<String>) -> Option<HttpRequestLine> {
     let http_request_line_regex = Regex::new(HTTP_HEAD).unwrap();
     let http_request_line = lines.first()?;
 
@@ -33,8 +33,8 @@ fn get_http_request_line(lines: &Vec<&str>) -> Option<HttpRequestLine> {
     }
 }
 
-fn get_http_request_headers(lines: &Vec<&str>) -> HashMap<String, String> {
-    lines.iter().skip(1).fold(HashMap::new(), |mut acc, &elem| {
+fn get_http_request_headers(lines: &Vec<String>) -> HashMap<String, String> {
+    lines.iter().skip(1).fold(HashMap::new(), |mut acc, elem| {
         if elem.trim().is_empty() {
             return acc;
         }

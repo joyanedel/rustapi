@@ -1,8 +1,7 @@
 use std::{
-    io::{Read, Write},
+    io::{BufRead, BufReader, Write},
     net::TcpStream,
-    thread::{self, sleep},
-    time,
+    thread,
 };
 
 mod requests;
@@ -14,20 +13,21 @@ fn main() {
     let tcp_server = server::create_server();
 
     for stream in tcp_server.incoming() {
-        let mut stream = stream.unwrap();
+        let stream = stream.unwrap();
         // handle_request(&mut stream);
-        thread::spawn(move || handle_request(&mut stream));
+        thread::spawn(move || handle_request(stream));
     }
 }
 
-fn handle_request(req_stream: &mut TcpStream) {
-    let mut req_buffer = [0; 512];
-    req_stream.read(&mut req_buffer).unwrap();
-    let parsed_stream = String::from_utf8_lossy(&req_buffer);
-    sleep(time::Duration::from_secs(1));
+fn handle_request(mut req_stream: TcpStream) {
+    let buf_reader = BufReader::new(req_stream.try_clone().unwrap());
+    let http_request_lines: Vec<String> = buf_reader
+        .lines()
+        .map(|r| r.unwrap())
+        .take_while(|l| !l.is_empty())
+        .collect();
 
-    let http_lines: Vec<&str> = parsed_stream.split("\n").collect();
-    let http_request = requests::parse_http_request(&http_lines);
+    let http_request = requests::parse_http_request(&http_request_lines);
 
     println!("{:#?}", http_request.unwrap());
 
